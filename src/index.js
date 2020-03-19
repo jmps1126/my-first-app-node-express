@@ -1,50 +1,37 @@
-const express = require("express");
+const express = require('express');
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const dotEnv = require('dotenv');
 
-const { info, error } = require("./modules/my-log");
-const { countries } = require("countries-list");
+//enable enviroment variables
+dotEnv.config();
 
+//system routes
+const routesVI = require('./routes/v1');
+
+//init app
 const app = express();
 
-// var server = http.createServer(function(request, response) {
-//   var parsed = url.parse(request.url);
-//   console.log("parsed:", parsed);
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }));
 
-//   var pathname = parsed.pathname;
-  
-//   var query = querystring.parse(parsed.query);
-//   console.log("query", query);
+// parse application/json
+app.use(bodyParser.json());
 
-//   if (pathname === "/") {
-//     response.writeHead(200, { "Content-Type": "text/html" });
-//     response.write("<html><body><p>HOME PAGE</p></body></html>");
-//     response.end();
-//   } else if (pathname === "/exit") {
-//     response.writeHead(200, { "Content-Type": "text/html" });
-//     response.write("<html><body><p>BYE</p></body></html>");
-//     response.end();
-//   } else if (pathname === "/country") {
-//     response.writeHead(200, { "Content-Type": "application/json" });
-//     response.write(JSON.stringify(countries[query.code]));
-//     response.end();
-//   } else if (pathname === "/info") {
-//     var result = info(pathname);
-//     response.writeHead(200, { "Content-Type": "text/html" });
-//     response.write(result);
-//     response.end();
-//   } else if (pathname === "/error") {
-//     var result = error(pathname);
-//     response.writeHead(200, { "Content-Type": "text/html" });
-//     response.write(result);
-//     response.end();
-//   } else {
-//     response.writeHead(404, { "Content-Type": "text/html" });
-//     response.write("<html><body><p>NOT FOUND</p></body></html>");
-//     response.end();
-//   }
-// });
+routesVI(app);
 
-app.listen(4000, () => {
-  console.log("running on 4000");
-}
+// mongo connection
+mongoose.connect(process.env.MONGO, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useCreateIndex: true
+}).then(() => {
+    const port = process.env.PORT || 4000;
 
-);
+    app.listen(port , () => {
+        console.log('connected to mongodb, running on ' + port);
+    });
+
+}).catch((err) => {
+    console.log(`Error conection mongo  ${err} `);
+});
